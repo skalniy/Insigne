@@ -29,7 +29,7 @@ def insert(fname, payload):
 
     with open('./signed.pdf', mode='wb') as f:
         f.write(data[:insert_pos])
-        f.write(data_to_insert + b'\n' + \
+        f.write(b'% '+ data_to_insert + b' ' + \
                 bytes(str(len(data_to_insert)), 'utf-8') + b'\n')
         f.write(data[insert_pos:])
 
@@ -40,23 +40,18 @@ def extract():
 
     # expected payload position
     end_pos = find_trailer_end(data) - 1
+    start_pos = data.rfind(b'\n', 0, end_pos) + 1
 
-    # position of separator between len and data
-    len_sep_pos = data.rfind(b'\n', 0, end_pos)
+    embedded_data = data[start_pos:end_pos].split()
 
-    # data len
-    len_str = int(data[len_sep_pos+1:end_pos])
-
-    decoded_data = base64.standard_b64decode(
-        data[len_sep_pos-16:len_sep_pos]
-    )
+    decoded_data = base64.standard_b64decode(embedded_data[1])
     
     return decoded_data
 
 
 def main():
     hidden_data = b'Hello, PDF!'
-    insert('/Users/skalniy/Documents/Insigne/vimbook-OPL.pdf', hidden_data)
+    insert('./testPDF_Version.6.x.pdf', hidden_data)
     extracted = extract()
     print(hidden_data == extracted)
 
