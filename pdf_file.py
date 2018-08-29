@@ -6,6 +6,7 @@ from io import BytesIO
 from pickle import dump, load
 import re
 
+from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 
@@ -65,8 +66,8 @@ class PDFFile:
             return cls(f.read())
 
     def sha256(self):
-        """ Return SHA-2 binary digest of original PDF """
-        return SHA256.new(self.body + self.trailer).digest()
+        """ Return SHA-2 of original PDF """
+        return SHA256.new(self.body + self.trailer)
 
     def sign(self, private_key_path):
         """ Add new sign to signatures chain """
@@ -77,15 +78,15 @@ class PDFFile:
         self.chain.append(
             MetaSign(
                 key.publickey().exportKey(format='DER'),
-                key.sign(self.sha256(), '')
+                PKCS1_v1_5.new(key).sign(self.sha256())
             )
         )
 
     def validate(self):
         """ Check if all signatures in signature chain are valid """
         for meta_signature in self.chain:
-            public_key = RSA.importKey(meta_signature.public_key)
-            if not public_key.verify(self.sha256(), meta_signature.signature):
+            key = RSA.importKey(meta_signature.public_key)
+            if not PKCS1_v1_5.new(key).verify(self.sha256(), meta_signature.signature):
                 return False
         return True
 
