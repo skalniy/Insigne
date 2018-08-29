@@ -4,12 +4,11 @@ from base64 import standard_b64decode, standard_b64encode
 from collections import namedtuple
 from io import BytesIO
 from pickle import dump, load
-import re
+from re import match
 
-from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
-
+from Crypto.Signature import PKCS1_v1_5
 
 MetaSign = namedtuple('MetaSign', ['public_key', 'signature'])
 
@@ -32,7 +31,7 @@ class PDFFile:
         return b''.join((b'% ', standard_b64encode(buf.getvalue()), b'\n'))
 
     def __init__(self, file_content):
-        header = re.compile(b'%PDF-1\.[1-7][\r\n]{1,2}').match(file_content)
+        header = match(b'%PDF-1\.[1-7][\r\n]{1,2}', file_content)
         if not header:
             raise RuntimeError("invalid header")
         header_len = len(header.group(0))
