@@ -47,14 +47,16 @@ class PDFFile:
         trailer_pos = file_content.rfind(b'trailer', header_len, startxref_pos)
         if not trailer_pos > header_len:
             trailer_pos = startxref_pos
-
-        chain_pos = file_content.rfind(b'\n', 0, trailer_pos-1) + 1
-        if not file_content.startswith(b'% ', chain_pos, trailer_pos):
-            chain_pos = trailer_pos
-
-        self.body = file_content[:chain_pos]
-        self.chain = self.__deserealize(file_content[chain_pos:trailer_pos])
         self.trailer = file_content[trailer_pos:]
+
+        endsign_pos = file_content.rfind(b'% endsign\n', header_len, trailer_pos)
+        if endsign_pos < 0:
+            self.body = file_content[:trailer_pos]
+            self.chain = self.__deserealize(file_content[trailer_pos:trailer_pos])
+        else:
+           chain_pos = file_content.rfind(b'% ', header_len, endsign_pos)
+           self.body = file_content[:chain_pos]
+           self.chain = self.__deserealize(file_content[chain_pos:endsign_pos])
 
     @classmethod
     def open(cls, path):
@@ -90,4 +92,8 @@ class PDFFile:
     def save(self, path):
         """ Save to file """
         with open(path, 'wb') as f:
-            f.write(b''.join((self.body, self.__serealize(), self.trailer)))
+            f.write(
+                b''.join((
+                    self.body, self.__serealize(), b'% endsign\n', self.trailer
+                ))
+            )
