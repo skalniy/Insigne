@@ -65,19 +65,16 @@ class PDFFile:
         """ Return SHA-2 binary digest of original PDF """
         return SHA256.new(self.body + self.trailer).digest()
 
-    def sign(self, private_key_path, public_key_path):
+    def sign(self, private_key_path):
         """ Add new sign to signatures chain """
         with open(private_key_path, 'rb') as f:
-            private_key = RSA.importKey(f.read())
-
-        with open(public_key_path, 'rb') as f:
-            public_key = RSA.importKey(f.read())
+            key = RSA.importKey(f.read())
 
         # TODO Crypto.Signature.PKCS1_PSS or Crypto.Signature.PKCS1_v1_5
         self.chain.append(
             MetaSign(
-                public_key.exportKey(format='DER'),
-                private_key.sign(self.sha256(), '')
+                key.publickey().exportKey(format='DER'),
+                key.sign(self.sha256(), '')
             )
         )
 
