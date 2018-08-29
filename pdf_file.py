@@ -4,6 +4,7 @@ from base64 import standard_b64decode, standard_b64encode
 from collections import namedtuple
 from io import BytesIO
 from pickle import dump, load
+import re
 
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
@@ -30,22 +31,22 @@ class PDFFile:
         return b''.join((b'% ', standard_b64encode(buf.getvalue()), b'\n'))
 
     def __init__(self, file_content):
-        # TODO check header
+        header = re.compile(b'%PDF-1\.[1-7][\r\n]{1,2}').match(file_content)
+        if not header:
+            raise RuntimeError("invalid header")
+        header_len = len(header.group(0))
 
-        # TODO change bound to header size
-        eof_pos = file_content.rfind(b'%%EOF')
-
+        eof_pos = file_content.rfind(b'%%EOF', header_len)
         if eof_pos < 0:
             raise RuntimeError("EOF not found")
 
-        # TODO change bound to header size
-        startxref_pos = file_content.rfind(b'startxref', 0, eof_pos)
+        startxref_pos = file_content.rfind(b'startxref', header_len, eof_pos)
         if startxref_pos < 0:
             raise RuntimeError("startxref not found")
 
-        # TODO change bound to header size
-        trailer_pos = file_content.rfind(b'trailer', 0, startxref_pos)
-        trailer_pos = (trailer_pos if trailer_pos > 0 else startxref_pos)
+        trailer_pos = file_content.rfind(b'trailer', header_len, startxref_pos)
+        if not trailer_pos > header_len:
+            trailer_pos =  startxref_pos
 
         chain_pos = file_content.rfind(b'\n', 0, trailer_pos-1) + 1
         if not file_content.startswith(b'% ', chain_pos, trailer_pos):
