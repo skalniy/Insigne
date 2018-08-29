@@ -46,7 +46,7 @@ class PDFFile:
 
         trailer_pos = file_content.rfind(b'trailer', header_len, startxref_pos)
         if not trailer_pos > header_len:
-            trailer_pos =  startxref_pos
+            trailer_pos = startxref_pos
 
         chain_pos = file_content.rfind(b'\n', 0, trailer_pos-1) + 1
         if not file_content.startswith(b'% ', chain_pos, trailer_pos):
