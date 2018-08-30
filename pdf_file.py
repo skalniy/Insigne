@@ -88,9 +88,8 @@ class PDFFile:
                 return False
         return True
 
-    def save(self, f_out):
+    def save(self, path):
         """ Save to file """
-        f_out.write(b''.join(
-                (self.body, self.__serealize(), b'% endsign\n', self.trailer)
-            )
-        )
+        path.write_bytes(b''.join(
+            (self.body, self.__serealize(), b'% endsign\n', self.trailer)
+        ))
