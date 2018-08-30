@@ -73,7 +73,6 @@ class PDFFile:
         with open(private_key_path, 'rb') as f:
             key = RSA.importKey(f.read())
 
-        # TODO Crypto.Signature.PKCS1_PSS or Crypto.Signature.PKCS1_v1_5
         self.chain.append(
             MetaSign(
                 key.publickey().exportKey(format='DER'),
@@ -89,11 +88,9 @@ class PDFFile:
                 return False
         return True
 
-    def save(self, path):
+    def save(self, f_out):
         """ Save to file """
-        with open(path, 'wb') as f:
-            f.write(
-                b''.join((
-                    self.body, self.__serealize(), b'% endsign\n', self.trailer
-                ))
+        f_out.write(b''.join(
+                (self.body, self.__serealize(), b'% endsign\n', self.trailer)
             )
+        )
