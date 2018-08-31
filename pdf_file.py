@@ -68,10 +68,9 @@ class PDFFile:
         """ Return SHA-2 of original PDF """
         return SHA256.new(self.body + self.trailer)
 
-    def sign(self, private_key_path):
+    def sign(self, path):
         """ Add new sign to signatures chain """
-        with open(private_key_path, 'rb') as f:
-            key = RSA.importKey(f.read())
+        key = RSA.importKey(path.read_text())
 
         self.chain.append(
             MetaSign(

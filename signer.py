@@ -11,11 +11,13 @@ def main():
     parser.add_argument("file", type=FileType('rb'))
     args = parser.parse_args()
 
+    kek = input()
     pdf = PDFFile(args.file.read())
     if not pdf.validate():
         raise RuntimeWarning("Sign is not valid.")
-    pdf.sign(Path.joinpath(Path.home, '.insigne.pem'))
+    pdf.sign(Path.joinpath(Path.home(), '.insigne.pem'))
     pdf.save(Path(args.file.name).with_suffix('.signed.pdf'))
+    input()
 
 if __name__ == "__main__":
     main()
