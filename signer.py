@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from argparse import ArgumentParser, FileType
 from pathlib import Path
 
@@ -12,7 +14,7 @@ def main():
     pdf = PDFFile(args.file.read())
     if not pdf.validate():
         raise RuntimeWarning("Sign is not valid.")
-    pdf.sign('./insigne.pem')
+    pdf.sign(Path.joinpath(Path.home, '.insigne.pem'))
     pdf.save(Path(args.file.name).with_suffix('.signed.pdf'))
 
 if __name__ == "__main__":
